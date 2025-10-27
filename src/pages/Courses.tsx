@@ -6,10 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Session } from "@supabase/supabase-js";
-import { UserPlus, Pencil, Trash2, Search } from "lucide-react";
-import { UserDialog } from "@/components/UserDialog";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { CourseDialog } from "@/components/CourseDialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -22,22 +21,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: string;
-  created_at: string;
-}
-
-export default function Users() {
+export default function Courses() {
   const [session, setSession] = useState<Session | null>(null);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [courses, setCourses] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,43 +52,39 @@ export default function Users() {
 
   useEffect(() => {
     if (session) {
-      fetchProfiles();
+      fetchCourses();
     }
   }, [session]);
 
-  useEffect(() => {
-    const filtered = profiles.filter(
-      (profile) =>
-        profile.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        profile.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredProfiles(filtered);
-  }, [searchQuery, profiles]);
-
-  const fetchProfiles = async () => {
+  const fetchCourses = async () => {
     const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
+      .from("courses")
+      .select(`
+        *,
+        profiles:instructor_id (full_name, email)
+      `)
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching profiles:", error);
+      console.error("Error fetching courses:", error);
     } else {
-      setProfiles(data || []);
-      setFilteredProfiles(data || []);
+      setCourses(data || []);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedCourse) return;
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(selectedUser.id);
+      const { error } = await supabase
+        .from("courses")
+        .delete()
+        .eq("id", selectedCourse.id);
 
       if (error) throw error;
 
-      toast({ title: "Success", description: "User deleted successfully" });
-      fetchProfiles();
+      toast({ title: "Success", description: "Course deleted successfully" });
+      fetchCourses();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -108,7 +93,7 @@ export default function Users() {
       });
     } finally {
       setDeleteDialogOpen(false);
-      setSelectedUser(null);
+      setSelectedCourse(null);
     }
   };
 
@@ -116,11 +101,11 @@ export default function Users() {
     return null;
   }
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin":
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "published":
         return "default";
-      case "instructor":
+      case "draft":
         return "secondary";
       default:
         return "outline";
@@ -132,58 +117,45 @@ export default function Users() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-            <p className="text-muted-foreground">Manage all users and their roles</p>
+            <h1 className="text-3xl font-bold tracking-tight">Course Management</h1>
+            <p className="text-muted-foreground">Create and manage courses</p>
           </div>
-          <Button onClick={() => { setSelectedUser(null); setDialogOpen(true); }}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Create User
+          <Button onClick={() => { setSelectedCourse(null); setDialogOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Course
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>All Users</CardTitle>
-                <CardDescription>Search, view, and manage user accounts</CardDescription>
-              </div>
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
+            <CardTitle>All Courses</CardTitle>
+            <CardDescription>View and manage all courses in the platform</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Instructor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProfiles.map((profile) => (
-                  <TableRow key={profile.id}>
-                    <TableCell className="font-medium">
-                      {profile.full_name || "N/A"}
-                    </TableCell>
-                    <TableCell>{profile.email}</TableCell>
+                {courses.map((course) => (
+                  <TableRow key={course.id}>
+                    <TableCell className="font-medium">{course.title}</TableCell>
                     <TableCell>
-                      <Badge variant={getRoleBadgeVariant(profile.role)}>
-                        {profile.role}
+                      {course.profiles?.full_name || course.profiles?.email || "Unassigned"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(course.status)}>
+                        {course.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(profile.created_at).toLocaleDateString()}
+                      {new Date(course.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -191,7 +163,7 @@ export default function Users() {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            setSelectedUser(profile);
+                            setSelectedCourse(course);
                             setDialogOpen(true);
                           }}
                         >
@@ -201,7 +173,7 @@ export default function Users() {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            setSelectedUser(profile);
+                            setSelectedCourse(course);
                             setDeleteDialogOpen(true);
                           }}
                         >
@@ -217,11 +189,11 @@ export default function Users() {
         </Card>
       </div>
 
-      <UserDialog
+      <CourseDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        user={selectedUser}
-        onSuccess={fetchProfiles}
+        course={selectedCourse}
+        onSuccess={fetchCourses}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -229,7 +201,7 @@ export default function Users() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the user account for {selectedUser?.email}.
+              This will permanently delete the course "{selectedCourse?.title}".
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

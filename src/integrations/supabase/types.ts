@@ -52,6 +52,114 @@ export type Database = {
           },
         ]
       }
+      assessments: {
+        Row: {
+          assessment_type: string
+          content_id: string | null
+          course_id: string
+          feedback: string | null
+          id: string
+          max_score: number | null
+          score: number | null
+          student_id: string
+          submitted_at: string
+          topic: string | null
+        }
+        Insert: {
+          assessment_type: string
+          content_id?: string | null
+          course_id: string
+          feedback?: string | null
+          id?: string
+          max_score?: number | null
+          score?: number | null
+          student_id: string
+          submitted_at?: string
+          topic?: string | null
+        }
+        Update: {
+          assessment_type?: string
+          content_id?: string | null
+          course_id?: string
+          feedback?: string | null
+          id?: string
+          max_score?: number | null
+          score?: number | null
+          student_id?: string
+          submitted_at?: string
+          topic?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content: {
+        Row: {
+          content_type: string
+          course_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          file_url: string | null
+          id: string
+          order_index: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_type: string
+          course_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          file_url?: string | null
+          id?: string
+          order_index?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_type?: string
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          file_url?: string | null
+          id?: string
+          order_index?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -194,6 +302,41 @@ export type Database = {
           {
             foreignKeyName: "reports_generated_by_fkey"
             columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
