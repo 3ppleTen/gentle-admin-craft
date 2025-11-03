@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, FileText, TrendingUp, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, FileText, TrendingUp, BarChart3, Settings, GraduationCap, Star, Download, MessageSquare, Award, ClipboardList } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -15,10 +15,17 @@ import {
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "User Management", url: "/users", icon: Users },
+  { title: "Instructors", url: "/instructors", icon: GraduationCap },
   { title: "Course Management", url: "/courses", icon: BookOpen },
   { title: "Content Management", url: "/content", icon: FileText },
+  { title: "Resources", url: "/resources", icon: Download },
+  { title: "Quizzes", url: "/quizzes", icon: ClipboardList },
   { title: "Enrollment Tracking", url: "/enrollments", icon: TrendingUp },
-  { title: "Performance Monitoring", url: "/performance", icon: BarChart3 },
+  { title: "Progress Tracking", url: "/progress", icon: BarChart3 },
+  { title: "Ratings & Reviews", url: "/reviews", icon: Star },
+  { title: "Discussions", url: "/discussions", icon: MessageSquare },
+  { title: "Certificates", url: "/certificates", icon: Award },
+  { title: "Performance Monitoring", url: "/performance", icon: TrendingUp },
   { title: "System Settings", url: "/settings", icon: Settings },
 ];
 
