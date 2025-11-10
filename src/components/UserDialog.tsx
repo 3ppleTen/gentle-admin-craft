@@ -20,8 +20,26 @@ export function UserDialog({ open, onOpenChange, user, onSuccess }: UserDialogPr
   const [role, setRole] = useState<"admin" | "instructor" | "student">("student");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const isEdit = !!user;
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        setCurrentUserId(authUser.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .single();
+        setCurrentUserRole(profile?.role || null);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -42,6 +60,29 @@ export function UserDialog({ open, onOpenChange, user, onSuccess }: UserDialogPr
 
     try {
       if (isEdit) {
+        // Prevent admin from changing their own role or other admins' roles
+        if (currentUserRole === "admin") {
+          // Check if trying to change an admin role
+          if (user.role === "admin" && role !== "admin") {
+            if (user.id === currentUserId) {
+              toast({
+                title: "Error",
+                description: "You cannot demote yourself from admin",
+                variant: "destructive",
+              });
+              setLoading(false);
+              return;
+            }
+            toast({
+              title: "Error",
+              description: "Admins cannot demote other admins",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
         // Update profile
         const { error: profileError } = await supabase
           .from("profiles")
@@ -132,16 +173,27 @@ export function UserDialog({ open, onOpenChange, user, onSuccess }: UserDialogPr
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={(value: any) => setRole(value)}>
+            <Select 
+              value={role} 
+              onValueChange={(value: any) => setRole(value)}
+              disabled={isEdit && user?.role === "admin"}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="instructor">Instructor</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="admin" disabled={isEdit && user?.role === "admin"}>
+                  Admin
+                </SelectItem>
               </SelectContent>
             </Select>
+            {isEdit && user?.role === "admin" && (
+              <p className="text-xs text-muted-foreground">
+                Admin roles cannot be modified
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
