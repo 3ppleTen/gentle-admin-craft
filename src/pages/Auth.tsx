@@ -53,7 +53,7 @@ export default function Auth() {
           options: {
             data: {
               full_name: fullName,
-              role: "admin", // Default role for first user
+              role: "student", // Students can signup
             },
             emailRedirectTo: `${window.location.origin}/`,
           },
@@ -79,7 +79,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary to-accent p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary to-accent p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
@@ -90,8 +90,13 @@ export default function Auth() {
           <div className="text-center">
             <CardTitle className="text-2xl font-bold">EduAdmin</CardTitle>
             <CardDescription>
-              {isLogin ? "Sign in to your account" : "Create a new account"}
+              {isLogin ? "Sign in to your account" : "Create your student account"}
             </CardDescription>
+            {!isLogin && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Instructors and admins: Please contact your administrator for access
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
