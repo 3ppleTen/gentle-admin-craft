@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, BookOpen, FileText, TrendingUp, BarChart3, Settings, GraduationCap, Star, Download, MessageSquare, Award, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, FileText, TrendingUp, BarChart3, Settings, GraduationCap, Star, Download, MessageSquare, Award, ClipboardList, UserCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Student Dashboard", url: "/student-dashboard", icon: UserCircle },
   { title: "User Management", url: "/users", icon: Users },
   { title: "Instructors", url: "/instructors", icon: GraduationCap },
   { title: "Course Management", url: "/courses", icon: BookOpen },
